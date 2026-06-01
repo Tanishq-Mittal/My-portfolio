@@ -46,21 +46,18 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // PARTICLES BACKGROUND - Optimized for mobile
-    if (typeof particlesJS !== 'undefined') {
-        // Detect if device is mobile/tablet
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const particleCount = isMobile ? 25 : 80; // Significantly reduce particles on mobile
-        const particleSize = isMobile ? 2 : 3;
-        const particleSpeed = isMobile ? 1.5 : 3; // Slower particles on mobile
-        
+    // DETECT MOBILE
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    // PARTICLES BACKGROUND - COMPLETELY DISABLED ON MOBILE
+    if (typeof particlesJS !== 'undefined' && !isMobile) {
         particlesJS('particles-js', {
             particles: {
                 number: {
-                    value: particleCount,
+                    value: 80,
                     density: {
                         enable: true,
-                        value_area: 1200 // Increased area to reduce density on mobile
+                        value_area: 800
                     }
                 },
                 color: {
@@ -70,15 +67,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     type: 'circle'
                 },
                 opacity: {
-                    value: isMobile ? 0.3 : 0.5, // Reduce opacity on mobile
+                    value: 0.5,
                     random: false
                 },
                 size: {
-                    value: particleSize,
+                    value: 3,
                     random: true
                 },
                 line_linked: {
-                    enable: !isMobile, // Disable lines on mobile for performance
+                    enable: true,
                     distance: 150,
                     color: '#00eeff',
                     opacity: 0.4,
@@ -86,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 move: {
                     enable: true,
-                    speed: particleSpeed,
+                    speed: 3,
                     direction: 'none',
                     random: false,
                     straight: false,
@@ -98,11 +95,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 detect_on: 'canvas',
                 events: {
                     onhover: {
-                        enable: !isMobile, // Disable on mobile for better performance
+                        enable: true,
                         mode: 'repulse'
                     },
                     onclick: {
-                        enable: !isMobile, // Disable on mobile for better performance
+                        enable: true,
                         mode: 'push'
                     },
                     resize: true
@@ -116,14 +113,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             },
-            retina_detect: !isMobile // Disable retina detection on mobile to save performance
+            retina_detect: true
         });
+    } else if (isMobile) {
+        // Hide particles canvas on mobile
+        const particlesCanvas = document.getElementById('particles-js');
+        if (particlesCanvas) {
+            particlesCanvas.style.display = 'none';
+        }
     }
 
-    // HEADER SCROLL EFFECT - Optimized with requestAnimationFrame
+    // HEADER SCROLL EFFECT - OPTIMIZED WITH RAF
     const header = document.querySelector('header');
     if (header) {
         let ticking = false;
+        
         window.addEventListener('scroll', () => {
             if (!ticking) {
                 window.requestAnimationFrame(() => {
