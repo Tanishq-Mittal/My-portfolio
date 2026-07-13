@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tip Calculator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .calculator {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: #1a202c;
+    }
+
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 0.5rem;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    input[type="number"]:focus {
+      outline: none;
+      border-color: #4299e1;
+    }
+
+    .tip-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .tip-btn {
+      flex: 1;
+      padding: 0.75rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      background: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .tip-btn:hover {
+      border-color: #4299e1;
+    }
+
+    .tip-btn.active {
+      background: #4299e1;
+      border-color: #4299e1;
+      color: white;
+    }
+
+    .custom-tip {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .custom-tip input {
+      margin-bottom: 0;
+      flex: 1;
+    }
+
+    .custom-tip span {
+      color: #718096;
+      font-weight: 600;
+    }
+
+    .results {
+      background: #edf2f7;
+      border-radius: 8px;
+      padding: 1.25rem;
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      color: #4a5568;
+    }
+
+    .result-row.total {
+      border-top: 2px solid #cbd5e0;
+      margin-top: 0.5rem;
+      padding-top: 0.75rem;
+      font-weight: 700;
+      font-size: 1.125rem;
+      color: #1a202c;
+    }
+
+    .result-row .value {
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <h1>Tip Calculator</h1>
+
+    <label for="bill">Bill amount ($)</label>
+    <input type="number" id="bill" placeholder="0.00" min="0" step="0.01">
+
+    <label>Tip percentage</label>
+    <div class="tip-buttons">
+      <button type="button" class="tip-btn" data-tip="15">15%</button>
+      <button type="button" class="tip-btn active" data-tip="18">18%</button>
+      <button type="button" class="tip-btn" data-tip="20">20%</button>
+      <button type="button" class="tip-btn" data-tip="25">25%</button>
+    </div>
+
+    <div class="custom-tip">
+      <input type="number" id="custom-tip" placeholder="Custom %" min="0" max="100" step="0.1">
+      <span>%</span>
+    </div>
+
+    <label for="people">Split between (people)</label>
+    <input type="number" id="people" value="1" min="1" step="1">
+
+    <div class="results">
+      <div class="result-row">
+        <span>Tip amount</span>
+        <span class="value" id="tip-amount">$0.00</span>
+      </div>
+      <div class="result-row">
+        <span>Total bill</span>
+        <span class="value" id="total">$0.00</span>
+      </div>
+      <div class="result-row total">
+        <span>Per person</span>
+        <span class="value" id="per-person">$0.00</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const billInput = document.getElementById('bill');
+    const customTipInput = document.getElementById('custom-tip');
+    const peopleInput = document.getElementById('people');
+    const tipButtons = document.querySelectorAll('.tip-btn');
+    const tipAmountEl = document.getElementById('tip-amount');
+    const totalEl = document.getElementById('total');
+    const perPersonEl = document.getElementById('per-person');
+
+    let selectedTip = 18;
+
+    function formatMoney(amount) {
+      if (!Number.isFinite(amount)) return '$0.00';
+      return '$' + amount.toFixed(2);
+    }
+
+    function getTipPercent() {
+      const customValue = customTipInput.value.trim();
+      if (customValue !== '') {
+        const parsed = parseFloat(customValue);
+        return Number.isFinite(parsed) ? parsed : 0;
+      }
+
+      const activeBtn = document.querySelector('.tip-btn.active');
+      if (activeBtn) {
+        return parseFloat(activeBtn.dataset.tip);
+      }
+
+      return selectedTip;
+    }
+
+    function setActiveTipButton(tip) {
+      tipButtons.forEach(btn => {
+        btn.classList.toggle('active', parseFloat(btn.dataset.tip) === tip);
+      });
+    }
+
+    function calculate() {
+      const bill = parseFloat(billInput.value) || 0;
+      const people = Math.max(1, parseInt(peopleInput.value) || 1);
+      const tipPercent = getTipPercent();
+
+      const tip = bill * (tipPercent / 100);
+      const total = bill + tip;
+      const perPerson = total / people;
+
+      tipAmountEl.textContent = formatMoney(tip);
+      totalEl.textContent = formatMoney(total);
+      perPersonEl.textContent = formatMoney(perPerson);
+    }
+
+    tipButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedTip = parseFloat(btn.dataset.tip);
+        customTipInput.value = '';
+        setActiveTipButton(selectedTip);
+        calculate();
+      });
+    });
+
+    function onCustomTipChange() {
+      if (customTipInput.value.trim() === '') {
+        setActiveTipButton(selectedTip);
+      } else {
+        tipButtons.forEach(b => b.classList.remove('active'));
+      }
+      calculate();
+    }
+
+    customTipInput.addEventListener('input', onCustomTipChange);
+    customTipInput.addEventListener('change', onCustomTipChange);
+
+    billInput.addEventListener('input', calculate);
+    peopleInput.addEventListener('input', calculate);
+
+    calculate();
+  </script>
+</body>
+</html>
